@@ -7749,7 +7749,7 @@ extern "C" void jl_init_llvm(void)
     #endif
 
     init_julia_llvm_meta();
-    jl_ExecutionEngine = new JuliaOJIT(*jl_TargetMachine);
+    jl_ExecutionEngine = new JuliaOJIT(*jl_TargetMachine, &jl_LLVMContext);
 
     // Mark our address spaces as non-integral
     jl_data_layout = jl_ExecutionEngine->getDataLayout();

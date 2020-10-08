@@ -2845,7 +2845,6 @@ f37532(T, x) = (Core.bitcast(Ptr{T}, x); x)
 # Issue #37943
 f37943(x::Any, i::Int) = getfield((x::Pair{false, Int}), i)
 g37943(i::Int) = fieldtype(Pair{false, T} where T, i)
-@test code_typed(f37943, Tuple{Any, Int})[1][2] === Union{}
-@test code_typed(g37943, Tuple{Int})[1][2] === Any
-
+@test only(Base.return_types(f37943, Tuple{Any, Int})) === Union{}
+@test only(Base.return_types(g37943, Tuple{Int})) === Any
 

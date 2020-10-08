@@ -2841,3 +2841,11 @@ f37532(T, x) = (Core.bitcast(Ptr{T}, x); x)
 
 # issue #37638
 @test !(Core.Compiler.return_type(() -> (nothing, Any[]...)[2], Tuple{}) <: Vararg)
+
+# Issue #37943
+f37943(x::Any, i::Int) = getfield((x::Pair{false, Int}), i)
+g37943(i::Int) = fieldtype(Pair{false, T} where T, i)
+@test code_typed(f37943, Tuple{Any, Int})[1][2] === Union{}
+@test code_typed(g37943, Tuple{Int})[1][2] === Any
+
+

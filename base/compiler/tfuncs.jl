@@ -853,6 +853,14 @@ function getfield_tfunc(@nospecialize(s00), @nospecialize(name))
     if isa(name, Conditional)
         return Bottom # can't index fields with Bool
     end
+    for _ft in ftypes
+        if (!isa(_ft, Type) && !isa(_ft, TypeVar)) || _ft === Bottom
+            # It's possible to get invalid types into the type domain.
+            # If we discover that we have one of them, this statement
+            # must be unreachable. Mark it as `Bottom`.
+            return Bottom
+        end
+    end
     if !isa(name, Const)
         if !(Int <: name || Symbol <: name)
             return Bottom
@@ -1012,7 +1020,9 @@ function _fieldtype_tfunc(@nospecialize(s), exact::Bool, @nospecialize(name))
         end
         t = Bottom
         for i in 1:length(ftypes)
-            ft1 = unwrapva(ftypes[i])
+            _ft = ftypes[i]
+            (isa(_ft, Type) || isa(_ft, TypeVar)) || return Any
+            ft1 = unwrapva(_ft)
             exactft1 = exact || (!has_free_typevars(ft1) && u.name !== Tuple.name)
             ft1 = rewrap_unionall(ft1, s)
             if exactft1
@@ -1045,6 +1055,7 @@ function _fieldtype_tfunc(@nospecialize(s), exact::Bool, @nospecialize(name))
     else
         ft = ftypes[fld]
     end
+    (isa(ft, Type) || isa(ft, TypeVar)) || return Any
 
     exactft = exact || (!has_free_typevars(ft) && u.name !== Tuple.name)
     ft = rewrap_unionall(ft, s)

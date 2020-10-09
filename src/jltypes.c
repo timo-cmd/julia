@@ -812,6 +812,8 @@ void jl_rehash_type_cache(jl_typename_t *name)
 {
     size_t sz = jl_svec_len(name->cache);
     jl_svec_t *newa = cache_rehash_set(name->cache, sz);
+    if (jl_svec_len(newa) != sz)
+        printf("%s %ld %ld\n", jl_symbol_name(name->name), sz, jl_svec_len(newa));
     assert(jl_svec_len(newa) == sz);
     size_t i;
     for (i = 0; i < sz; i++)

@@ -39,20 +39,12 @@ for T = types[2:end],
     @test hash(a,one(UInt)) == invoke(hash, Tuple{Real, UInt}, a, one(UInt))
 end
 
-for T = types,
-    S = types,
-    x = vals,
-    a = coerce(T, x),
+for T = types, S = types, x = vals
+    a = coerce(T, x)
     b = coerce(S, x)
     #println("$(typeof(a)) $a")
     #println("$(typeof(b)) $b")
-    @test isequal(a,b) == (hash(a)==hash(b))
-    # for y=vals
-    #     println("T=$T; S=$S; x=$x; y=$y")
-    #     c = convert(T,x//y)
-    #     d = convert(S,x//y)
-    #     @test !isequal(a,b) || hash(a)==hash(b)
-    # end
+    @test isequal(a, b) == (hash(a) == hash(b))
 end
 
 # issue #8619

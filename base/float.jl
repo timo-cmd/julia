@@ -551,12 +551,32 @@ isinf(x::Real) = !isnan(x) & !isfinite(x)
 
 ## hashing small, built-in numeric types ##
 
-hx(a::UInt64, b::Float64, h::UInt) = hash_uint64((3a + reinterpret(UInt64,b)) - h)
-const hx_NaN = hx(UInt64(0), NaN, UInt(0  ))
+hash(x::Int64,  h::UInt) = hash_uint64(bitcast(UInt64, x)) - 3h
 
-hash(x::UInt64,  h::UInt) = hx(x, Float64(x), h)
-hash(x::Int64,   h::UInt) = hx(reinterpret(UInt64, abs(x)), Float64(x), h)
-hash(x::Float64, h::UInt) = isnan(x) ? (hx_NaN ⊻ h) : hx(fptoui(UInt64, abs(x)), x, h)
+# switch UInt64 from two's complement to sign-magnitude format and mix up some
+# of the bits so that typemax(UInt64) isn't near -1 (since we have a test for this)
+hash(x::UInt64, h::UInt) = hash_uint64(bitcast(Int64, x) < 0 ? 0xc653_0000_0000_0000 ⊻ ~x : x) - 3h
+
+const hx_NaN = hash_uint64(reinterpret(UInt64, NaN))
+let Tf = Float64, Tu = UInt64, Ti = Int64
+    @eval function hash(x::$Tf, h::UInt)
+        # see comments on trunc and hash(Real, UInt)
+        if $(Tf(typemin(Ti))) <= x < $(Tf(typemax(Ti)))
+            xi = fptosi($Ti, x)
+            if xi == x
+                return hash(xi, h)
+            end
+        elseif $(Tf(typemin(Tu))) <= x < $(Tf(typemax(Tu)))
+            xu = fptoui($Tu, x)
+            if xu == x
+                return hash(xu, h)
+            end
+        elseif isnan(x)
+            return hx_NaN ⊻ h # NaN does not have a stable bit pattern
+        end
+        return hash_uint64(5bitcast(UInt64, x)) - 3h
+    end
+end
 
 hash(x::Union{Bool,Int8,UInt8,Int16,UInt16,Int32,UInt32}, h::UInt) = hash(Int64(x), h)
 hash(x::Float32, h::UInt) = hash(Float64(x), h)

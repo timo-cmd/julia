@@ -1537,13 +1537,13 @@ end
 # the top-level UUID (e.g. that of the project itself) or as a dependency.
 function get_uuid_name(project::Dict, uuid::UUID)
     if haskey(project, "uuid") && haskey(project, "name") &&
-                                  UUID(project["uuid"]) == uuid
-        return project["name"]
+                                  UUID(project["uuid"]::String) == uuid
+        return project["name"]::String
     elseif haskey(project, "deps")
         struuid = string(uuid)
-        for (k, v) in project["deps"]
-            if v == struuid
-                return k
+        for (k, v) in project["deps"]::Dict{String, Any}
+            if v::String == struuid
+                return k::String
             end
         end
     end
@@ -1558,13 +1558,13 @@ end
 
 function collect_preferences!(project_toml::String, uuid::UUID)
     # We'll return a list of dicts to be merged
-    dicts = Dict[]
+    dicts = Dict{String, Any}[]
 
     # Get the name of this UUID to this project; if it can't find it, skip out.
     project = parsed_toml(project_toml)
     pkg_name = get_uuid_name(project, uuid)
     if pkg_name === nothing
-        return Dict[]
+        return dicts
     end
 
     # Look first inside of `Project.toml` to see we have preferences embedded within there
@@ -1578,7 +1578,7 @@ function collect_preferences!(project_toml::String, uuid::UUID)
         toml_path = joinpath(project_dir, name)
         if isfile(toml_path)
             prefs = parsed_toml(toml_path)
-            push!(dicts, get(prefs, pkg_name, Dict()))
+            push!(dicts, get(prefs, pkg_name, Dict{String,Any}())::Dict{String,Any})
 
             # If we find `JuliaLocalPreferences.toml`, don't look for `LocalPreferences.toml`
             break

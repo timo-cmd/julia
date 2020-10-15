@@ -180,7 +180,10 @@ install: $(addprefix install-, $(DEP_LIBS))
 cleanall: $(addprefix clean-, $(DEP_LIBS))
 distcleanall: $(addprefix distclean-, $(DEP_LIBS))
 	rm -rf $(build_prefix)
-getall: get-llvm get-libuv get-pcre get-openlibm get-dsfmt get-openblas get-lapack get-suitesparse get-unwind get-osxunwind get-gmp get-mpfr get-patchelf get-utf8proc get-objconv get-mbedtls get-libssh2 get-nghttp2 get-curl get-libgit2 get-libwhich
+getall: get-llvm get-libuv get-pcre get-openlibm get-dsfmt get-openblas get-lapack get-suitesparse get-unwind get-gmp get-mpfr get-patchelf get-utf8proc get-objconv get-mbedtls get-libssh2 get-nghttp2 get-curl get-libgit2 get-libwhich
+ifeq ($(OS),Darwin)
+getall: get-osxunwind
+endif
 
 include $(SRCDIR)/llvm.mk
 include $(SRCDIR)/libuv.mk

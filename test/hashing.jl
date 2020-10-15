@@ -46,6 +46,7 @@ for T = types, S = types, x = vals
     #println("$(typeof(b)) $b")
     @test isequal(a, b) == (hash(a) == hash(b))
 end
+@test hash(0.0) != hash(-0.0)
 
 # issue #8619
 @test hash(nextfloat(2.0^63)) == hash(UInt64(nextfloat(2.0^63)))

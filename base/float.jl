@@ -563,12 +563,12 @@ let Tf = Float64, Tu = UInt64, Ti = Int64
         # see comments on trunc and hash(Real, UInt)
         if $(Tf(typemin(Ti))) <= x < $(Tf(typemax(Ti)))
             xi = fptosi($Ti, x)
-            if xi == x
+            if isequal(xi, x)
                 return hash(xi, h)
             end
         elseif $(Tf(typemin(Tu))) <= x < $(Tf(typemax(Tu)))
             xu = fptoui($Tu, x)
-            if xu == x
+            if isequal(xu, x)
                 return hash(xu, h)
             end
         elseif isnan(x)

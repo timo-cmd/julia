@@ -1127,6 +1127,7 @@ static int64_t write_dependency_list(ios_t *s, jl_array_t **udepsp, jl_array_t *
         // Calculate Preferences hash for current package.
         jl_value_t *prefs_hash = NULL;
         jl_value_t *prefs_list = NULL;
+        JL_GC_PUSH1(&prefs_list);
         if (jl_base_module) {
             // Toplevel module is the module we're currently compiling, use it to get our preferences hash
             jl_value_t * toplevel = (jl_value_t*)jl_get_global(jl_base_module, jl_symbol("__toplevel__"));
@@ -1172,6 +1173,7 @@ static int64_t write_dependency_list(ios_t *s, jl_array_t **udepsp, jl_array_t *
             write_int32(s, 0);
             write_uint64(s, 0);
         }
+        JL_GC_POP(); // for prefs_list
 
         // write a dummy file position to indicate the beginning of the source-text
         pos = ios_pos(s);

@@ -594,6 +594,7 @@ static void jl_serialize_value_(jl_serializer_state *s, jl_value_t *v, int as_li
         write_int32(s->s, m->nkw);
         write_int8(s->s, m->isva);
         write_int8(s->s, m->pure);
+        write_int8(s->s, m->aggressive_constprop);
         jl_serialize_value(s, (jl_value_t*)m->slot_syms);
         jl_serialize_value(s, (jl_value_t*)m->roots);
         jl_serialize_value(s, (jl_value_t*)m->ccallable);
@@ -1410,6 +1411,7 @@ static jl_value_t *jl_deserialize_value_method(jl_serializer_state *s, jl_value_
     m->nkw = read_int32(s->s);
     m->isva = read_int8(s->s);
     m->pure = read_int8(s->s);
+    m->aggressive_constprop = read_int8(s->s);
     m->slot_syms = jl_deserialize_value(s, (jl_value_t**)&m->slot_syms);
     jl_gc_wb(m, m->slot_syms);
     m->roots = (jl_array_t*)jl_deserialize_value(s, (jl_value_t**)&m->roots);

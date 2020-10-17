@@ -1063,6 +1063,20 @@ function _fieldtype_tfunc(@nospecialize(s), exact::Bool, @nospecialize(name))
 end
 add_tfunc(fieldtype, 2, 3, fieldtype_tfunc, 0)
 
+function valid_type_param(T)
+    isvarargtype(T) && return false
+    T === Symbol && return true
+    isbits(T) && return true
+    if T <: Tuple
+        isconcretetype(T) || return false
+        for P in T.parameters
+            (P === Symbol || isbits(P)) || return false
+        end
+        return true
+    end
+    return false
+end
+
 function apply_type_nothrow(argtypes::Array{Any, 1}, @nospecialize(rt))
     rt === Type && return false
     length(argtypes) >= 1 || return false
@@ -1082,14 +1096,14 @@ function apply_type_nothrow(argtypes::Array{Any, 1}, @nospecialize(rt))
     for i = 2:length(argtypes)
         isa(u, UnionAll) || return false
         ai = widenconditional(argtypes[i])
-        if ai ⊑ TypeVar
+        if ai ⊑ TypeVar || ai === DataType
             # We don't know anything about the bounds of this typevar, but as
             # long as the UnionAll is not constrained, that's ok.
             if !(u.var.lb === Union{} && u.var.ub === Any)
                 return false
             end
-        elseif isa(ai, Const) && isa(ai.val, Type)
-            ai = ai.val
+        elseif (isa(ai, Const) && isa(ai.val, Type))
+            ai = isa(ai, Const) ? ai.val : ai.parameters[1]
             if has_free_typevars(u.var.lb) || has_free_typevars(u.var.ub)
                 return false
             end
@@ -1097,7 +1111,22 @@ function apply_type_nothrow(argtypes::Array{Any, 1}, @nospecialize(rt))
                 return false
             end
         else
-            return false
+            T, exact = instanceof_tfunc(ai)
+            if T === Bottom
+                if !(u.var.lb === Union{} && u.var.ub === Any)
+                    return false
+                end
+                if !valid_type_param(widenconst(ai))
+                    return false
+                end
+            else
+                if !(T <: u.var.ub)
+                    return false
+                end
+                if exact ? !(u.var.lb <: T) : !(u.var.lb === Bottom)
+                    return false
+                end
+            end
         end
         u = u.body
     end
